@@ -9,7 +9,7 @@ import ReadingTools from '../../.vitepress/theme/components/ReadingTools.vue'
 import StudyDiagram from '../../.vitepress/theme/components/StudyDiagram.vue'
 import SyncPanel from './components/SyncPanel.vue'
 
-const email = ref(''), password = ref(''), authError = ref(''), busy = ref(false)
+const email = ref(''), password = ref(''), authError = ref(''), busy = ref(false), signingOut = ref(false)
 const userId = ref(''), account = ref(''), ready = ref(false), starting = ref(true)
 const manifest = ref<Manifest | null>(null), page = ref<Page | null>(null), error = ref(''), loading = ref(false)
 const menu = ref(false), query = ref(''), searchBusy = ref(false), searchError = ref('')
@@ -62,7 +62,7 @@ async function setSession(session: any) {
   }
 }
 async function login() {
-  if (!supabase) return
+  if (!supabase || busy.value || signingOut.value) return
   busy.value = true; authError.value = ''
   try {
     const { error } = await supabase.auth.signInWithPassword({ email: email.value.trim(), password: password.value })
@@ -71,8 +71,10 @@ async function login() {
   finally { password.value = ''; busy.value = false }
 }
 async function logout() {
+  signingOut.value = true
   clearPrivateState(); userId.value = ''
-  await supabase?.auth.signOut({ scope: 'local' })
+  try { await supabase?.auth.signOut({ scope: 'local' }) }
+  finally { signingOut.value = false }
 }
 async function retry() {
   const { data } = await supabase!.auth.getSession()
@@ -215,7 +217,7 @@ onBeforeUnmount(() => {
         <form v-else @submit.prevent="login">
           <label for="reader-email">邮箱</label><input id="reader-email" v-model="email" type="email" autocomplete="username" required>
           <label for="reader-password">密码</label><input id="reader-password" v-model="password" type="password" autocomplete="current-password" required>
-          <button class="reader-primary" :disabled="busy">{{ busy ? '正在登录…' : '登录' }}</button>
+          <button class="reader-primary" :disabled="busy || signingOut">{{ signingOut ? '正在退出…' : busy ? '正在登录…' : '登录' }}</button>
           <p v-if="authError" role="alert" class="reader-error">{{ authError }}</p>
         </form>
         <small>账号由管理员创建，此处不开放注册。</small>

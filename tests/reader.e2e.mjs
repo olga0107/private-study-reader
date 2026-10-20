@@ -210,8 +210,21 @@ try {
   await a.page.locator('#reader-search').fill('memory')
   await a.page.locator('.reader-search button').click()
   await until(async () => delayedSearch, 'delayed search request')
+  let logoutStarted = false, releaseLogout
+  const waitLogout = new Promise(resolve => { releaseLogout = resolve })
+  const logoutPattern = '**/auth/v1/logout**'
+  await a.page.route(logoutPattern, async route => {
+    logoutStarted = true
+    await waitLogout
+    await route.continue().catch(() => {})
+  })
   await a.page.getByRole('button', { name: '退出登录', exact: true }).click()
   await a.page.locator('#reader-email').waitFor()
+  await until(async () => logoutStarted, 'delayed logout request')
+  assert.equal(await a.page.locator('.reader-login button[type="submit"], .reader-login .reader-primary').isEnabled(), false)
+  releaseLogout()
+  await a.page.getByRole('button', { name: '登录', exact: true }).waitFor()
+  await a.page.unroute(logoutPattern)
   releaseSearch()
   await a.page.unroute(searchPattern)
   assert.equal(await a.page.locator('.vp-doc').count(), 0)
@@ -219,7 +232,7 @@ try {
   assert.equal(await a.page.locator('.reader-search button').isEnabled(), true)
   await chapter(a.page)
   assert.equal((await a.page.locator('.annotation-count').textContent()).trim(), '0')
-  evidence.push('Logout cancels search and removes content; account switch resets search and isolates marks')
+  evidence.push('Logout cancels search and removes content; login waits for delayed sign-out; account switch resets search and isolates marks')
   // Two same-origin tabs edit different chapters while offline.
   const secondTab = await a.ctx.newPage()
   secondTab.on('pageerror', error => errors.push(error.message))
