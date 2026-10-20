@@ -3,6 +3,8 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, createApp, 
 import DOMPurify from 'dompurify'
 import { supabase } from './backend/client'
 import { loadManifest, loadPage, privateObject, type Manifest, type Page, type PageRef } from './backend/content'
+import { createImageCache } from './backend/image-cache.mjs'
+import { mountPrivateImages } from './backend/images'
 import { initSync, stopSync } from './backend/sync'
 import { route, isDark, contentUpdated } from './reader-context'
 import ReadingTools from '../../.vitepress/theme/components/ReadingTools.vue'
@@ -21,7 +23,11 @@ const results = ref<{ path: string; title: string; snippet: string }[]>([])
 const article = ref<HTMLElement>(), headings = ref<{id: string; title: string}[]>([])
 let generation = 0, navigation = 0, searchGeneration = 0, authGeneration = 0, request: AbortController | null = null
 let searchRequest: AbortController | null = null
-let urls: string[] = [], diagrams: VueApp[] = [], unsubscribe: (() => void) | undefined
+let diagrams: VueApp[] = [], unsubscribe: (() => void) | undefined, stopImages: (() => void) | undefined
+const imageCache = createImageCache(async (key: string, signal: AbortSignal) => {
+  const response = await privateObject(key, signal)
+  return response.blob()
+})
 const pages = computed(() => manifest.value?.pages || [])
 const lectures = computed(() => pages.value.filter(p => p.kind === 'notes'))
 const foundations = computed(() => pages.value.filter(p => p.kind === 'foundations'))
@@ -37,8 +43,8 @@ const safeHtml = computed(() => DOMPurify.sanitize(page.value?.html || '', {
 }))
 function cleanPage() {
   request?.abort()
+  stopImages?.(); stopImages = undefined
   diagrams.forEach(app => app.unmount()); diagrams = []
-  urls.forEach(url => URL.revokeObjectURL(url)); urls = []
   page.value = null; headings.value = []
   loading.value = false
 }
@@ -46,6 +52,7 @@ function clearPrivateState() {
   generation++; navigation++; searchGeneration++
   searchRequest?.abort(); searchBusy.value = false
   stopSync(); cleanPage()
+  imageCache.clear()
   ready.value = false; manifest.value = null; query.value = ''; results.value = []; searchedQuery.value = ''
   menu.value = false; accountOpen.value = false; lastPagePath.value = ''; showPassword.value = false
   account.value = ''; error.value = ''; searchError.value = ''
@@ -128,15 +135,8 @@ async function openRoute() {
     headings.value = [...(article.value?.querySelectorAll('h2') || [])].map(h => ({ id: h.id, title: h.textContent?.replace(/\u200b/g, '').trim() || '' }))
     if (!anchor) window.scrollTo(0, 0)
     await contentUpdated()
-    await Promise.all([...(article.value?.querySelectorAll<HTMLImageElement>('img[data-private-src]') || [])].map(async img => {
-      const name = img.dataset.privateSrc!
-      if (!/^assets\/[a-zA-Z0-9._-]+$/.test(name)) throw Error('Invalid image path.')
-      const response = await privateObject(`releases/${manifest.value!.release}/${name}`, controller.signal)
-      const blob = await response.blob()
-      if (!isCurrent()) return
-      const url = URL.createObjectURL(blob); urls.push(url); img.src = url
-    }))
     if (!isCurrent()) return
+    stopImages = mountPrivateImages(article.value!, manifest.value!.release, imageCache)
     if (anchor) document.getElementById(anchor)?.scrollIntoView()
   } catch (e) {
     if (isCurrent() && (e as Error).name !== 'AbortError') error.value = (e as Error).message
@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
         <main id="reader-content" class="reader-main" :inert="menu" tabindex="-1">
           <SyncPanel :pages="pages" />
           <p v-if="error" class="reader-error" role="alert">{{ error }} <button @click="openRoute">Reload</button></p>
-          <p v-if="loading" class="reader-loading" role="status">{{ page ? 'Loading images…' : 'Loading…' }}</p>
+          <p v-if="loading" class="reader-loading" role="status">Loading…</p>
           <section v-if="route.path === '/'" class="reader-home">
             <div class="reader-home-heading"><div><h1>Operating<br>Systems<span class="home-title-dot">.</span></h1><p class="reader-course-meta">CSC3150 <span>Fall 2026</span></p></div></div>
             <a v-if="resumePage" class="reader-resume" :href="href(resumePage.path)"><span><small>Continue reading</small><strong>{{ resumePage.title }}</strong></span><ReaderIcon name="arrow" /></a>

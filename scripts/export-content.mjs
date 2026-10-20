@@ -1,11 +1,29 @@
-import { readFile, writeFile, mkdir, readdir, copyFile, rm } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises'
 import { join, resolve, dirname } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createHash } from 'node:crypto'
 import { load } from 'cheerio'
+import sharp from 'sharp'
 
 export async function exportContent({ dist = '.vitepress/dist', out = '.private-content', diagrams = {} } = {}) {
-  const pages = [], media = new Set(), digest = createHash('sha256')
+  const pages = [], media = new Map(), converted = new Map(), digest = createHash('sha256')
+  async function prepareImage(file) {
+    if (converted.has(file)) return converted.get(file)
+    let name = file, bytes = await readFile(join(dist, file))
+    if (/\.png$/i.test(file)) {
+      const webp = await sharp(bytes).webp({ lossless: true, effort: 4 }).toBuffer()
+      if (webp.length < bytes.length) {
+        const [original, decoded] = await Promise.all([
+          sharp(bytes).ensureAlpha().raw().toBuffer(),
+          sharp(webp).ensureAlpha().raw().toBuffer(),
+        ])
+        // Retain the PNG if color conversion or transparency changes any pixel.
+        if (original.equals(decoded)) { bytes = webp; name = file.replace(/\.png$/i, '.webp') }
+      }
+    }
+    media.set(name, bytes); converted.set(file, name)
+    return name
+  }
   for (const group of ['notes', 'foundations']) {
     let files
     try { files = await readdir(join(dist, group)) } catch { continue }
@@ -20,13 +38,13 @@ export async function exportContent({ dist = '.vitepress/dist', out = '.private-
         if (!diagrams[id]) throw Error(`Missing diagram: ${id}`)
         pageDiagrams[id] = diagrams[id]
       })
-      doc.find('img').each((_, el) => {
+      for (const el of doc.find('img').toArray()) {
         const src = $(el).attr('src') || ''
         const match = src.match(/(?:^|\/)(assets\/[a-zA-Z0-9._-]+)$/)
         if (!match) throw Error(`Unsupported image URL in ${name}`)
-        media.add(match[1])
-        $(el).removeAttr('src').removeAttr('srcset').attr('data-private-src', match[1])
-      })
+        const name = await prepareImage(match[1])
+        $(el).removeAttr('src').removeAttr('srcset').attr('data-private-src', name)
+      }
       doc.find('a[href]').each((_, el) => {
         const href = $(el).attr('href')
         const match = href.match(/\/((?:notes|foundations)\/[a-z0-9-]+)(?:\.html)?(#[^?]*)?$/)
@@ -43,7 +61,7 @@ export async function exportContent({ dist = '.vitepress/dist', out = '.private-
     }
   }
   if (!pages.length) throw Error('No private pages were exported')
-  for (const file of [...media].sort()) digest.update(file).update(await readFile(join(dist, file)))
+  for (const file of [...media.keys()].sort()) digest.update(file).update(media.get(file))
   const release = digest.digest('hex').slice(0, 16)
   await rm(out, { recursive: true, force: true })
   const base = join(out, 'releases', release)
@@ -51,9 +69,9 @@ export async function exportContent({ dist = '.vitepress/dist', out = '.private-
     await mkdir(dirname(join(base, page.file)), { recursive: true })
     await writeFile(join(base, page.file), page.body)
   }
-  for (const file of media) {
+  for (const [file, bytes] of media) {
     await mkdir(dirname(join(base, file)), { recursive: true })
-    await copyFile(join(dist, file), join(base, file))
+    await writeFile(join(base, file), bytes)
   }
   const manifest = { version: 1, release, pages: pages.map(({ body, ...page }) => page) }
   await writeFile(join(out, 'current.json'), JSON.stringify(manifest))

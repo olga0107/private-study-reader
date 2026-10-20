@@ -19,7 +19,7 @@ async function walk(dir) {
 }
 async function upload(file) {
   const bytes = await readFile(join(root, file))
-  const type = { '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' }[extname(file)] || 'application/octet-stream'
+  const type = { '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' }[extname(file)] || 'application/octet-stream'
   const { error } = await client.storage.from('site-content').upload(file, bytes, { contentType: type, cacheControl: '0', upsert: true })
   if (error) throw Error(`Upload failed: ${file}: ${error.message}`)
 }

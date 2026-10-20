@@ -30,6 +30,10 @@ npm test
 npm run build
 ```
 
+With the local reader running, `READER_URL=http://localhost:5173/os3150-site/ node tests/images.e2e.mjs`
+checks image loading, retries, and cache isolation against a simulated backend.
+It creates no real users and does not require administrator credentials.
+
 Set repository variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 Select GitHub Actions as the Pages source. The supplied workflow builds and
 deploys only the reader. Privileged service-role credentials never belong in

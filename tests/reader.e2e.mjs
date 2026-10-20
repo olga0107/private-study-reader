@@ -93,10 +93,10 @@ try {
   assert.equal(await a.page.locator('.vp-doc h1').count(), 1)
   assert.equal(await a.page.locator('.sync-panel').count(), 0)
   assert.equal(await a.page.locator('.vp-doc img').count(), 18)
-  await a.page.locator('.vp-doc img').evaluateAll(async imgs => {
-    for (const img of imgs) img.loading = 'eager'
-    await Promise.all(imgs.map(img => img.decode()))
-  })
+  for (const img of await a.page.locator('.vp-doc img').all()) {
+    await img.scrollIntoViewIfNeeded()
+    await a.page.waitForFunction(el => el.dataset.imageState === 'ready', await img.elementHandle(), { timeout: 45000 })
+  }
   assert.equal(await a.page.locator('.vp-doc img').evaluateAll(imgs => imgs.every(img => img.complete && img.naturalWidth > 0 && img.src.startsWith('blob:'))), true)
   const navigationTitles = await a.page.locator('.reader-chapter-link').evaluateAll(links => links.map(link => link.getAttribute('aria-label')))
   assert.ok(navigationTitles.includes('Lec 01 · Introduction'))

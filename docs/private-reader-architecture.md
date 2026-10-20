@@ -37,9 +37,24 @@ Never put the service-role key into a frontend variable or an artifact.
 
 ## Reading and searching
 
+The private export converts PNG illustrations to lossless WebP only when the
+result is smaller and a decoded RGBA comparison proves pixel equality. Original
+source images remain unchanged. The upload verifies every object before changing
+the current-release manifest; previous releases remain available.
+
 After login, the reader fetches the manifest and page JSON with the user's token.
-Image requests also carry authorization. Blob URLs are released on navigation
-and logout. Course files and full-text search data are held in memory, not a
+Image requests also carry authorization. Only images within 600 pixels of the
+viewport are queued, with at most two downloads at once. Leaving that area
+cancels unfinished downloads so the new reading position takes priority.
+Image dimensions preserve the document layout, and failed downloads have an
+individual retry button. Loading the chapter does not wait for its images.
+
+Successful image bytes are cached in tab memory (32 MiB, least recently used).
+Cache keys include the content release. Logout and account changes clear the
+cache, abort pending downloads, and prevent late responses from refilling it.
+Blob URLs are released on navigation and logout. No image bytes are written to
+localStorage, IndexedDB, a service worker, or the browser HTTP cache.
+Course files and full-text search data are held in memory, not a
 public bundle, service worker, or shared persistent cache. Page HTML is sanitized
 before rendering. The existing diagram renderer receives private data at runtime.
 

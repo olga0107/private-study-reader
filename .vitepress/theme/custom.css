@@ -130,6 +130,9 @@
 .reader-error { color:#a63535!important; padding:12px 0; font-size:13px; }
 .dark .reader-error { color:#ffaba2!important; }
 .reader-loading { font-size:12px; color:var(--vp-c-text-2); padding:0 0 16px; }
+.reader-private-image[data-image-state]:not([data-image-state=ready]) { background:var(--vp-c-bg-soft); }
+.reader-image-retry { display:block; margin:8px 0 20px; padding:8px 12px; border:1px solid var(--vp-c-divider); border-radius:6px; color:var(--vp-c-brand-1); font-size:13px; }
+.reader-image-retry[hidden] { display:none; }
 .private-reader .vp-doc [id] { scroll-margin-top:170px; }
 .private-reader .reading-tools { top:80px; border-radius:8px; box-shadow:0 5px 14px #132b2205; }
 .os-left-hidden .reader-sidebar { display:none; }
