@@ -16,13 +16,14 @@ function apply(){
 }
 function toggleOutline(){
  // 窄屏（手机/平板竖屏）：展开抽屉式目录；宽屏：收起/展开整个右侧栏
- if(window.matchMedia('(max-width: 959px)').matches){ outline.value=!outline.value }
+ if(window.matchMedia('(max-width: 1199px)').matches){ outline.value=!outline.value }
  else rightHidden.value=!rightHidden.value
 }
 function jumpToHeading(id:string){
  outline.value=false
  document.getElementById(id)?.scrollIntoView()
 }
+function showNavigation(){leftHidden.value=false}
 function measure(){
  cancelAnimationFrame(frame)
  frame=requestAnimationFrame(()=>{const el=document.querySelector('.vp-doc') as HTMLElement;if(!el)return;const start=el.getBoundingClientRect().top+scrollY;progress.value=Math.max(0,Math.min(100,100*(scrollY-start)/(Math.max(1,el.offsetHeight-innerHeight))))})
@@ -30,11 +31,11 @@ function measure(){
 async function refresh(){await nextTick();headings.value=[...document.querySelectorAll('.vp-doc h2,.vp-doc h3')].map(el=>({id:el.id,text:el.textContent?.replace(/\u200b/g,'').trim()||'',level:Number(el.tagName[1])}));outline.value=false;measure()}
 onMounted(()=>{
  try{const saved=JSON.parse(localStorage.getItem('os-reading')||'{}');if([16,17,18,19,20].includes(saved.size))size.value=saved.size;leftHidden.value=saved.left===true;rightHidden.value=saved.right===true}catch{}
- apply();refresh();window.addEventListener('scroll',measure,{passive:true});window.addEventListener('resize',measure)
+ apply();refresh();window.addEventListener('scroll',measure,{passive:true});window.addEventListener('resize',measure);window.addEventListener('reader-show-navigation',showNavigation)
 })
 watch([size,leftHidden,rightHidden],apply)
 onContentUpdated(refresh)
-onBeforeUnmount(()=>{window.removeEventListener('scroll',measure);window.removeEventListener('resize',measure);cancelAnimationFrame(frame);document.documentElement.classList.remove('os-left-hidden','os-right-hidden')})
+onBeforeUnmount(()=>{window.removeEventListener('scroll',measure);window.removeEventListener('resize',measure);window.removeEventListener('reader-show-navigation',showNavigation);cancelAnimationFrame(frame);document.documentElement.classList.remove('os-left-hidden','os-right-hidden')})
 </script>
 <template>
  <div class="reading-tools">

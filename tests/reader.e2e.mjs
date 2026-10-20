@@ -98,7 +98,7 @@ try {
     await Promise.all(imgs.map(img => img.decode()))
   })
   assert.equal(await a.page.locator('.vp-doc img').evaluateAll(imgs => imgs.every(img => img.complete && img.naturalWidth > 0 && img.src.startsWith('blob:'))), true)
-  const navigationTitles = await a.page.locator('.reader-sidebar a').allTextContents()
+  const navigationTitles = await a.page.locator('.reader-chapter-link').evaluateAll(links => links.map(link => link.getAttribute('aria-label')))
   assert.ok(navigationTitles.includes('Lec 01 · Introduction'))
   assert.equal(navigationTitles.some(title => /[\u3400-\u9fff]/.test(title) && title !== '首页'), false)
   evidence.push('Anonymous login gate; authenticated chapter with all 18 private images; original English navigation and no persistent sync panel')
@@ -179,7 +179,7 @@ try {
   await a.page.screenshot({ path: out + '/desktop.png', fullPage: false })
   await a.page.locator('#reader-search').fill('socket')
   await a.page.locator('.reader-search button').click()
-  const socketResult = a.page.locator('.reader-sidebar a[href="#/notes/lec06-sockets-pipes"]')
+  const socketResult = a.page.locator('.reader-search-results a[href="#/notes/lec06-sockets-pipes"]')
   await socketResult.waitFor({ timeout: 30000 })
   await socketResult.click()
   await a.page.waitForFunction(() => !document.querySelector('.reader-loading') &&
@@ -218,6 +218,7 @@ try {
     await waitLogout
     await route.continue().catch(() => {})
   })
+  await a.page.getByRole('button', { name: '账号设置', exact: true }).click()
   await a.page.getByRole('button', { name: '退出登录', exact: true }).click()
   await a.page.locator('#reader-email').waitFor()
   await until(async () => logoutStarted, 'delayed logout request')

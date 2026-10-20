@@ -1,6 +1,6 @@
-# Private Study Reader
+# olga’s study
 
-A small private learning application with a public, reviewable codebase.
+A personal study space with a public, reviewable codebase.
 Readers use fixed administrator-created accounts to access course material,
 highlight text, write notes, draw with a stylus, and synchronize their annotations.
 
