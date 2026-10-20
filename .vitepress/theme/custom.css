@@ -47,13 +47,6 @@
 .reader-login { width:100%; max-width:1192px; margin:0 auto; padding:72px 48px 24px; min-height:calc(100dvh - 80px); display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:56px 80px; align-content:center; align-items:center; }
 .reader-welcome h1 { font:52px/1.13 Georgia, 'Times New Roman', serif; color:var(--reader-ink); letter-spacing:-.035em; text-wrap:balance; }
 .reader-welcome h1 em { font-weight:400; color:var(--reader-rose); }
-.welcome-copy { margin-top:28px; font-size:16px; line-height:1.9; color:var(--vp-c-text-2); }
-.welcome-signature { display:flex; align-items:center; gap:14px; margin-top:42px; font-size:14px; }
-.private-reader .author-mark { width:44px; height:44px; font-size:30px; color:var(--reader-ink); border-color:var(--reader-ink); }
-.welcome-signature strong, .reader-home-byline strong { font:italic 21px Georgia,serif; color:var(--reader-ink); }
-.welcome-signature small { display:block; margin-top:5px; color:var(--reader-muted); font-size:12px; }
-.welcome-footnote { margin-top:56px; display:flex; align-items:center; gap:10px; color:var(--reader-muted); font-size:12px; }
-.welcome-footnote .reader-icon { width:17px; height:17px; }
 .reader-login-card { width:100%; padding:34px 32px 28px; border:1px solid var(--vp-c-divider); border-radius:16px; background:var(--vp-c-bg); box-shadow:0 16px 42px #1b382a08; }
 .reader-login-card h2 { font-size:25px; font-weight:600; line-height:1.4; margin-bottom:10px; }
 .reader-login-card > p { color:var(--vp-c-text-2); font-size:14px; line-height:1.8; }
@@ -69,8 +62,6 @@
 .reader-primary:disabled { opacity:.65; }
 .reader-access-note { display:flex; gap:8px; align-items:flex-start; margin-top:22px; font-size:11px!important; }
 .reader-access-note .reader-icon { width:14px; height:14px; margin-top:3px; }
-.reader-login-footer { grid-column:1/-1; display:flex; justify-content:space-between; gap:20px; padding-top:22px; border-top:1px solid var(--vp-c-divider); font-size:11px; color:var(--reader-muted); }
-.reader-login-footer > span:first-child { font:italic 16px Georgia,serif; }
 .reader-skip { position:fixed; z-index:100; top:-100px; left:20px; background:var(--vp-c-bg); padding:12px 16px; color:var(--vp-c-brand-1); }
 .reader-skip:focus { top:10px; }
 #reader-content:focus { outline:none; }
@@ -88,9 +79,6 @@
 .reader-nav-heading { display:flex; justify-content:space-between; align-items:center; margin:30px 10px 10px; }
 .reader-nav-heading h2 { font-size:12px; font-weight:650; color:var(--vp-c-text-1); }
 .reader-nav-heading > span { font-size:11px; font-variant-numeric:tabular-nums; color:var(--reader-muted); }
-.reader-sidebar-signature { margin:32px 10px 8px; padding-top:20px; border-top:1px solid var(--vp-c-divider); font-size:11px; color:var(--reader-muted); }
-.reader-sidebar-signature strong { color:var(--reader-ink); font:italic 18px Georgia,serif; }
-.reader-sidebar-signature span { display:block; margin-top:5px; font-size:10px; }
 .reader-mobile-nav-title { display:none; }
 .reader-search label { display:block; font-size:12px; margin:0 0 10px 2px; }
 .reader-search > div { display:flex; align-items:center; border:1px solid #b7bfb7; border-radius:7px; background:var(--vp-c-bg); padding:0 8px; }
@@ -116,9 +104,6 @@
 .home-title-dot { color:var(--reader-rose); }
 .reader-course-meta { display:flex; gap:14px; margin-top:20px; font-size:12px; color:var(--vp-c-text-2); }
 .reader-course-meta span { padding-left:14px; border-left:1px solid var(--vp-c-divider); }
-.reader-home-byline { display:flex; gap:12px; align-items:center; font-size:12px; margin-bottom:4px; }
-.reader-home-byline small { display:block; font-size:11px; color:var(--reader-muted); margin-top:6px; }
-.reader-home-byline .author-mark { width:36px; height:36px; font-size:25px; }
 .reader-resume { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:18px 0; border-bottom:1px solid var(--vp-c-divider); color:var(--reader-ink); }
 .reader-resume small { display:block; font-size:11px; color:var(--reader-muted); margin-bottom:5px; }
 .reader-resume strong { font-size:14px; font-weight:500; }
@@ -133,10 +118,7 @@
 .reader-home .lec-num { font:30px/1 Georgia,serif; color:var(--reader-muted); opacity:1; }
 .reader-home .lec-body { flex:1; gap:7px; padding:0; }
 .reader-home .lec-title { font-size:15px; font-weight:550; line-height:1.4; }
-.reader-home .lec-sub { font-size:11px; color:var(--reader-muted); }
 .reader-home .lec-card .reader-icon { width:17px; height:17px; color:var(--reader-ink); }
-.reader-home-footer { display:flex; justify-content:space-between; gap:20px; border-top:1px solid var(--vp-c-divider); padding-top:20px; color:var(--reader-muted); font-size:11px; }
-.reader-home-footer > span:first-child { font:italic 16px Georgia,serif; }
 .reader-breadcrumb { display:flex; gap:10px; align-items:center; margin-bottom:24px; color:var(--reader-muted); font-size:11px; }
 .reader-breadcrumb > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .reader-breadcrumb .reader-icon { width:12px; height:12px; }
@@ -167,7 +149,6 @@
   .reader-welcome h1 { font-size:44px; }
   .reader-home h1 { font-size:46px; }
   .reader-home-heading { align-items:flex-start; }
-  .reader-home-byline { flex-direction:column; align-items:flex-end; text-align:right; }
 }
 @media(max-width:959px) {
   .reader-header { height:72px; padding:0 20px; gap:6px; }
@@ -183,21 +164,14 @@
   .private-reader .reading-tools { top:72px; }
   .reader-login { min-height:calc(100dvh - 72px); grid-template-columns:minmax(0,1fr) 340px; gap:28px; padding:44px 28px 24px; }
   .reader-welcome h1 { font-size:38px; }
-  .welcome-copy { font-size:14px; }
-  .welcome-break { display:none; }
-  .welcome-footnote { margin-top:36px; font-size:11px; }
   .reader-login-card { padding:28px 24px; }
 }
 @media(max-width:759px) {
   .reader-login { display:flex; flex-direction:column; align-items:stretch; max-width:480px; gap:28px; padding:28px 24px 24px; }
   .reader-welcome h1 { font-size:35px; }
-  .welcome-copy { font-size:13px; margin-top:16px; }
-  .welcome-signature, .welcome-footnote { display:none; }
   .reader-login-card { padding:25px 24px; }
-  .reader-login-footer { margin-top:0; padding-top:18px; }
   .reader-home h1 { font-size:42px; }
   .reader-home-heading { flex-direction:column; gap:24px; padding-bottom:28px; }
-  .reader-home-byline { flex-direction:row; align-items:center; text-align:left; }
   .reader-home .lec-grid { grid-template-columns:1fr; }
   .reader-home .lec-card { min-height:96px; padding:20px; }
 }

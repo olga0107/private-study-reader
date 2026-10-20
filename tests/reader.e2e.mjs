@@ -27,7 +27,7 @@ async function login(page, user) {
 async function submitLogin(page, user) {
   await page.locator('#reader-email').fill(user.email)
   await page.locator('#reader-password').fill(user.password)
-  await page.getByRole('button', { name: '登录', exact: true }).click()
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await page.locator('.reader-main').waitFor({ timeout: 30000 })
 }
 async function chapter(page, path = '/notes/lec06-sockets-pipes') {
@@ -194,7 +194,7 @@ try {
   assert.equal(await a.page.locator('.vp-doc h1').count(), 1)
   assert.equal(await a.page.locator('.reader-error').count(), 0)
   await a.page.evaluate(() => window.scrollTo(0, 0))
-  await a.page.getByRole('button', { name: '切换深色', exact: true }).click()
+  await a.page.getByRole('button', { name: 'Dark mode', exact: true }).click()
   await a.page.screenshot({ path: out + '/mobile-dark.png' })
   evidence.push('Private diagrams with zoom, authenticated full-text search, mobile width and dark theme')
   // Logout interrupts a delayed search; re-login in the same app must reset busy state.
@@ -218,13 +218,13 @@ try {
     await waitLogout
     await route.continue().catch(() => {})
   })
-  await a.page.getByRole('button', { name: '账号设置', exact: true }).click()
-  await a.page.getByRole('button', { name: '退出登录', exact: true }).click()
+  await a.page.getByRole('button', { name: 'Account', exact: true }).click()
+  await a.page.getByRole('button', { name: 'Sign out', exact: true }).click()
   await a.page.locator('#reader-email').waitFor()
   await until(async () => logoutStarted, 'delayed logout request')
   assert.equal(await a.page.locator('.reader-login button[type="submit"], .reader-login .reader-primary').isEnabled(), false)
   releaseLogout()
-  await a.page.getByRole('button', { name: '登录', exact: true }).waitFor()
+  await a.page.getByRole('button', { name: 'Sign in', exact: true }).waitFor()
   await a.page.unroute(logoutPattern)
   releaseSearch()
   await a.page.unroute(searchPattern)

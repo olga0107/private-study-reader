@@ -75,8 +75,8 @@ async function login() {
   busy.value = true; authError.value = ''
   try {
     const { error } = await supabase.auth.signInWithPassword({ email: email.value.trim(), password: password.value })
-    if (error) authError.value = '登录失败，请检查账号密码或联系账号管理员。'
-  } catch { authError.value = '暂时无法连接，请检查网络后重试。' }
+    if (error) authError.value = 'Unable to sign in. Check your email and password.'
+  } catch { authError.value = 'Connection failed. Please try again.' }
   finally { password.value = ''; busy.value = false }
 }
 async function logout() {
@@ -105,7 +105,7 @@ async function openRoute() {
   cleanPage(); route.path = path; error.value = ''; menu.value = false
   if (path === '/') { loading.value = false; document.title = 'olga’s study · Operating Systems'; return }
   const reference = pages.value.find(p => p.path === path)
-  if (!reference) { error.value = '没有找到这一页，请从章节列表选择。'; return }
+  if (!reference) { error.value = 'Page not found. Choose a chapter.'; return }
   const controller = new AbortController(); request = controller; loading.value = true
   const isCurrent = () => token === navigation && epoch === generation
   try {
@@ -130,7 +130,7 @@ async function openRoute() {
     await contentUpdated()
     await Promise.all([...(article.value?.querySelectorAll<HTMLImageElement>('img[data-private-src]') || [])].map(async img => {
       const name = img.dataset.privateSrc!
-      if (!/^assets\/[a-zA-Z0-9._-]+$/.test(name)) throw Error('图片路径无效。')
+      if (!/^assets\/[a-zA-Z0-9._-]+$/.test(name)) throw Error('Invalid image path.')
       const response = await privateObject(`releases/${manifest.value!.release}/${name}`, controller.signal)
       const blob = await response.blob()
       if (!isCurrent()) return
@@ -158,10 +158,10 @@ function documentClick(event: MouseEvent) {
   if (copy) {
     const text = copy.parentElement?.querySelector('code')?.textContent || ''
     navigator.clipboard.writeText(text).then(() => {
-      copy.setAttribute('aria-label', '已复制')
+      copy.setAttribute('aria-label', 'Copied')
       copy.classList.add('copied')
       setTimeout(() => copy.classList.remove('copied'), 1500)
-    }).catch(() => copy.setAttribute('aria-label', '复制失败，请手动选择代码'))
+    }).catch(() => copy.setAttribute('aria-label', 'Copy failed. Select the code to copy it.'))
   }
 }
 async function search() {
@@ -253,81 +253,75 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="private-reader" :class="{ 'reader-at-home': ready && route.path === '/' }">
-    <a class="reader-skip" href="#reader-content" @click.prevent="focusContent()">跳到正文</a>
+    <a class="reader-skip" href="#reader-content" @click.prevent="focusContent()">Skip to content</a>
     <header class="reader-header" :inert="menu">
-      <a href="#/" class="reader-brand" aria-label="olga’s study 首页" @click="menu = false"><span class="brand-monogram">o.</span><span class="brand-name">olga<span class="brand-apostrophe">’s</span><small>study notes</small></span></a>
-      <span v-if="ready" class="header-course">Operating Systems <span>/ CSC3150</span></span>
+      <a href="#/" class="reader-brand" aria-label="olga’s study home" @click="menu = false"><span class="brand-monogram">o.</span><span class="brand-name">olga<span class="brand-apostrophe">’s</span><small>study notes</small></span></a>
+      <span v-if="ready && route.path !== '/'" class="header-course">Operating Systems <span>/ CSC3150</span></span>
       <span class="reader-header-spacer" />
-      <button v-if="ready" ref="menuButton" class="reader-menu-toggle reader-icon-button" @click="menu = !menu" :aria-expanded="menu" aria-controls="reader-navigation" aria-label="打开章节列表"><ReaderIcon name="menu" /></button>
-      <button class="reader-icon-button" @click="theme" :aria-label="isDark ? '切换浅色' : '切换深色'" :title="isDark ? '切换浅色' : '切换深色'"><ReaderIcon :name="isDark ? 'sun' : 'moon'" /></button>
+      <button v-if="ready" ref="menuButton" class="reader-menu-toggle reader-icon-button" @click="menu = !menu" :aria-expanded="menu" aria-controls="reader-navigation" aria-label="Open chapters"><ReaderIcon name="menu" /></button>
+      <button class="reader-icon-button" @click="theme" :aria-label="isDark ? 'Light mode' : 'Dark mode'" :title="isDark ? 'Light mode' : 'Dark mode'"><ReaderIcon :name="isDark ? 'sun' : 'moon'" /></button>
       <div v-if="userId" ref="accountControl" class="reader-account-control">
-        <button ref="accountButton" class="reader-icon-button" :aria-expanded="accountOpen" aria-controls="reader-account-menu" aria-label="账号设置" @click="accountOpen = !accountOpen"><ReaderIcon name="user" /></button>
-        <div v-if="accountOpen" id="reader-account-menu" class="reader-account-menu"><span>当前账号</span><p class="reader-account">{{ account }}</p><button @click="logout">退出登录</button></div>
+        <button ref="accountButton" class="reader-icon-button" :aria-expanded="accountOpen" aria-controls="reader-account-menu" aria-label="Account" @click="accountOpen = !accountOpen"><ReaderIcon name="user" /></button>
+        <div v-if="accountOpen" id="reader-account-menu" class="reader-account-menu"><span>Signed in as</span><p class="reader-account">{{ account }}</p><button @click="logout">Sign out</button></div>
       </div>
     </header>
     <main v-if="!userId" id="reader-content" class="reader-login" tabindex="-1">
       <section class="reader-welcome" aria-labelledby="welcome-title">
-        <h1 id="welcome-title">A space to learn.<br><em>A little more olga.</em></h1>
-        <p class="welcome-copy">把读过的、想过的、终于弄懂的，<br class="welcome-break">留在自己的学习角落。</p>
-        <div class="welcome-signature"><span class="author-mark">o.</span><span>Notes by <strong>olga</strong><small>Read. Think. Make it yours.</small></span></div>
-        <div class="welcome-footnote"><ReaderIcon name="book" /><span>课程笔记 · 文字标记 · 手写思考</span></div>
+        <h1 id="welcome-title">Notes.<br><em>by olga.</em></h1>
       </section>
       <section class="reader-login-card" aria-labelledby="login-title">
-        <h2 id="login-title">欢迎回来</h2><p>登录，接着上次的思路继续。</p>
-        <p v-if="starting" role="status">正在恢复登录…</p>
-        <p v-else-if="!supabase" role="alert">暂时无法连接学习空间，请稍后再试。</p>
+        <h2 id="login-title">Sign in</h2>
+        <p v-if="starting" role="status">Restoring session…</p>
+        <p v-else-if="!supabase" role="alert">Unable to connect. Please try again later.</p>
         <form v-else @submit.prevent="login">
-          <label for="reader-email">邮箱</label><input id="reader-email" v-model="email" type="email" autocomplete="username" placeholder="name@example.com" required>
-          <label for="reader-password">密码</label><div class="reader-password-field"><input id="reader-password" v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="输入你的密码" required><button type="button" :aria-label="showPassword ? '隐藏密码' : '显示密码'" :aria-pressed="showPassword" @click="showPassword = !showPassword"><ReaderIcon name="eye" /></button></div>
+          <label for="reader-email">Email</label><input id="reader-email" v-model="email" type="email" autocomplete="username" placeholder="name@example.com" required>
+          <label for="reader-password">Password</label><div class="reader-password-field"><input id="reader-password" v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required><button type="button" :aria-label="showPassword ? 'Hide password' : 'Show password'" :aria-pressed="showPassword" @click="showPassword = !showPassword"><ReaderIcon name="eye" /></button></div>
           <p v-if="authError" id="reader-auth-error" role="alert" class="reader-error">{{ authError }}</p>
-          <button class="reader-primary" :disabled="busy || signingOut"><span>{{ signingOut ? '正在退出…' : busy ? '正在登录…' : '登录' }}</span><ReaderIcon v-if="!busy && !signingOut" name="arrow" /></button>
+          <button class="reader-primary" :disabled="busy || signingOut"><span>{{ signingOut ? 'Signing out…' : busy ? 'Signing in…' : 'Sign in' }}</span><ReaderIcon v-if="!busy && !signingOut" name="arrow" /></button>
         </form>
-        <p class="reader-access-note"><ReaderIcon name="lock" /><span>仅限受邀账号。需要访问时，请联系 olga。</span></p>
+        <p class="reader-access-note"><ReaderIcon name="lock" /><span>Invite only</span></p>
       </section>
-      <footer class="reader-login-footer"><span>olga’s study</span><span>一点一点，理解更多。</span></footer>
     </main>
     <template v-else>
-      <div v-if="!ready" class="reader-start"><p v-if="error" role="alert">{{ error }}</p><p v-else role="status">正在打开你的学习空间…</p><button v-if="error" @click="retry">重试</button></div>
+      <div v-if="!ready" class="reader-start"><p v-if="error" role="alert">{{ error }}</p><p v-else role="status">Opening notes…</p><button v-if="error" @click="retry">Retry</button></div>
       <template v-else>
-        <button v-if="menu" class="reader-nav-backdrop" aria-label="关闭章节列表" tabindex="-1" @click="menu = false; menuButton?.focus()" />
-        <aside id="reader-navigation" ref="sidebar" class="reader-sidebar" :class="{ open: menu }" :role="menu ? 'dialog' : undefined" :aria-modal="menu || undefined" aria-label="章节列表">
-          <div class="reader-mobile-nav-title"><strong>章节列表</strong><button class="reader-icon-button" aria-label="关闭章节列表" @click="menu = false; menuButton?.focus()"><ReaderIcon name="close" /></button></div>
-          <form class="reader-search" @submit.prevent="search"><label for="reader-search">搜索笔记</label><div><ReaderIcon name="search" /><input id="reader-search" ref="searchInput" v-model="query" type="search" placeholder="关键词 / 概念" autocomplete="off"><button type="submit" :disabled="searchBusy">{{ searchBusy ? '搜索中' : '搜索' }}</button></div></form>
-          <section v-if="searchedQuery || searchBusy" class="reader-search-results" aria-label="搜索结果" aria-live="polite">
-            <div class="reader-results-head"><span>{{ searchBusy ? '正在查找…' : searchError ? '搜索未完成' : `找到 ${results.length} 篇笔记` }}</span><button @click="clearSearch(); searchInput?.focus()" aria-label="清除搜索"><ReaderIcon name="close" /></button></div>
+        <button v-if="menu" class="reader-nav-backdrop" aria-label="Close chapters" tabindex="-1" @click="menu = false; menuButton?.focus()" />
+        <aside id="reader-navigation" ref="sidebar" class="reader-sidebar" :class="{ open: menu }" :role="menu ? 'dialog' : undefined" :aria-modal="menu || undefined" aria-label="Chapters">
+          <div class="reader-mobile-nav-title"><strong>Chapters</strong><button class="reader-icon-button" aria-label="Close chapters" @click="menu = false; menuButton?.focus()"><ReaderIcon name="close" /></button></div>
+          <form class="reader-search" @submit.prevent="search"><label for="reader-search">Search notes</label><div><ReaderIcon name="search" /><input id="reader-search" ref="searchInput" v-model="query" type="search" placeholder="Keyword" autocomplete="off"><button type="submit" :disabled="searchBusy">{{ searchBusy ? 'Searching…' : 'Search' }}</button></div></form>
+          <section v-if="searchedQuery || searchBusy" class="reader-search-results" aria-label="Search results" aria-live="polite">
+            <div class="reader-results-head"><span>{{ searchBusy ? 'Searching…' : searchError ? 'Search failed' : `${results.length} results` }}</span><button @click="clearSearch(); searchInput?.focus()" aria-label="Clear search"><ReaderIcon name="close" /></button></div>
             <p v-if="searchError" role="alert">{{ searchError }}</p>
             <a v-for="result in results" :key="result.path" :href="href(result.path)" @click.prevent="go(result.path)"><strong>{{ result.title }}</strong><small>{{ result.snippet }}</small></a>
-            <p v-if="!results.length && !searchBusy && !searchError">没有找到“{{ searchedQuery }}”。试试英文术语或更短的关键词。</p>
+            <p v-if="!results.length && !searchBusy && !searchError">No matches for “{{ searchedQuery }}”. Try another keyword.</p>
           </section>
-          <nav aria-label="课程导航">
-            <a class="reader-home-link" href="#/" :aria-current="route.path === '/' ? 'page' : undefined" @click="menu = false"><ReaderIcon name="book" />课程首页</a>
+          <nav aria-label="Course navigation">
+            <a class="reader-home-link" href="#/" :aria-current="route.path === '/' ? 'page' : undefined" @click="menu = false"><ReaderIcon name="book" />Overview</a>
             <div class="reader-nav-heading"><h2>Lectures</h2><span>{{ lectures.length }}</span></div>
             <a v-for="(item, i) in lectures" :key="item.path" class="reader-chapter-link" :href="href(item.path)" :aria-current="route.path === item.path ? 'page' : undefined" :aria-label="item.title" @click="menu = false"><span class="reader-chapter-number">{{ String(i + 1).padStart(2, '0') }}</span><span>{{ chapterTitle(item.title) }}</span></a>
             <div class="reader-nav-heading"><h2>Foundations</h2></div><a v-for="item in foundations" :key="item.path" :href="href(item.path)" :aria-current="route.path === item.path ? 'page' : undefined" @click="menu = false">{{ item.title }}</a>
           </nav>
-          <div class="reader-sidebar-signature">Notes by <strong>olga</strong><span>Keep a little curiosity.</span></div>
         </aside>
         <main id="reader-content" class="reader-main" :inert="menu" tabindex="-1">
           <SyncPanel :pages="pages" />
-          <p v-if="error" class="reader-error" role="alert">{{ error }} <button @click="openRoute">重新加载</button></p>
-          <p v-if="loading" class="reader-loading" role="status">{{ page ? '正文已打开，正在加载配图…' : '正在加载内容…' }}</p>
+          <p v-if="error" class="reader-error" role="alert">{{ error }} <button @click="openRoute">Reload</button></p>
+          <p v-if="loading" class="reader-loading" role="status">{{ page ? 'Loading images…' : 'Loading…' }}</p>
           <section v-if="route.path === '/'" class="reader-home">
-            <div class="reader-home-heading"><div><h1>Operating<br>Systems<span class="home-title-dot">.</span></h1><p class="reader-course-meta">CSC3150 <span>Fall 2026</span></p></div><div class="reader-home-byline"><span class="author-mark">o.</span><span>Notes by <strong>olga</strong><small>一点一点，弄懂系统如何运转。</small></span></div></div>
-            <a v-if="resumePage" class="reader-resume" :href="href(resumePage.path)"><span><small>继续上次阅读</small><strong>{{ resumePage.title }}</strong></span><ReaderIcon name="arrow" /></a>
+            <div class="reader-home-heading"><div><h1>Operating<br>Systems<span class="home-title-dot">.</span></h1><p class="reader-course-meta">CSC3150 <span>Fall 2026</span></p></div></div>
+            <a v-if="resumePage" class="reader-resume" :href="href(resumePage.path)"><span><small>Continue reading</small><strong>{{ resumePage.title }}</strong></span><ReaderIcon name="arrow" /></a>
             <div class="reader-index-heading"><h2>Lecture notes</h2><span>{{ lectures.length }} chapters</span></div>
-            <div class="lec-grid"><a v-for="(item, i) in lectures" :key="item.path" class="lec-card" :href="href(item.path)"><span class="lec-num">{{ String(i + 1).padStart(2, '0') }}</span><span class="lec-body"><span class="lec-title">{{ chapterTitle(item.title) }}</span><span class="lec-sub">Lecture {{ i + 1 }}</span></span><ReaderIcon name="arrow" /></a></div>
-            <footer class="reader-home-footer"><span>Notes by olga</span><span>Read at your own pace.</span></footer>
+            <div class="lec-grid"><a v-for="(item, i) in lectures" :key="item.path" class="lec-card" :href="href(item.path)"><span class="lec-num">{{ String(i + 1).padStart(2, '0') }}</span><span class="lec-body"><span class="lec-title">{{ chapterTitle(item.title) }}</span></span><ReaderIcon name="arrow" /></a></div>
           </section>
           <div v-else class="VPDoc has-aside">
             <div class="content-container">
-              <nav v-if="activePage" class="reader-breadcrumb" aria-label="当前位置"><a href="#/">课程首页</a><ReaderIcon name="chevron" /><span>{{ activePage.title }}</span></nav>
+              <nav v-if="activePage" class="reader-breadcrumb" aria-label="Breadcrumb"><a href="#/">Overview</a><ReaderIcon name="chevron" /><span>{{ activePage.title }}</span></nav>
               <ReadingTools v-if="page" :key="route.path" />
               <article ref="article" class="vp-doc" @click="documentClick" v-html="safeHtml" />
-              <nav v-if="page && (prev || next)" class="reader-pagination" aria-label="课程翻页"><a v-if="prev" :href="href(prev.path)"><small>上一讲</small><span>{{ prev.title }}</span></a><a v-if="next" :href="href(next.path)"><small>下一讲</small><span>{{ next.title }}</span><ReaderIcon name="arrow" /></a></nav>
+              <nav v-if="page && (prev || next)" class="reader-pagination" aria-label="Chapter navigation"><a v-if="prev" :href="href(prev.path)"><small>Previous</small><span>{{ prev.title }}</span></a><a v-if="next" :href="href(next.path)"><small>Next</small><span>{{ next.title }}</span><ReaderIcon name="arrow" /></a></nav>
             </div>
           </div>
         </main>
-        <aside v-if="page" class="reader-outline" :inert="menu" aria-label="本讲大纲"><h2>On this page</h2><a v-for="h in headings" :key="h.id" :href="'#' + h.id" @click.prevent="scrollToHeading(h.id)">{{ h.title }}</a></aside>
+        <aside v-if="page" class="reader-outline" :inert="menu" aria-label="On this page"><h2>On this page</h2><a v-for="h in headings" :key="h.id" :href="'#' + h.id" @click.prevent="scrollToHeading(h.id)">{{ h.title }}</a></aside>
       </template>
     </template>
   </div>
