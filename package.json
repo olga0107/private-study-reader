@@ -1,0 +1,27 @@
+{
+  "name": "private-study-reader",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config app/vite.config.ts",
+    "build": "vite build --config app/vite.config.ts",
+    "preview": "vite preview --config app/vite.config.ts",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "node tests/reader.e2e.mjs"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.10",
+    "cheerio": "^1.1.2",
+    "playwright": "^1.64.1",
+    "vite": "^8.3.4",
+    "vitepress": "^1.6.4"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "dompurify": "^3.4.17",
+    "mermaid": "11.17.2",
+    "perfect-freehand": "^1.2.3",
+    "vue": "^3.5.44"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+dist-reader/
+.env.local
+.env.*.local
+.private-content/
+.inbox/
+.DS_Store
